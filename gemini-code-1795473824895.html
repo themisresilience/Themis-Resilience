@@ -1,0 +1,507 @@
+<!-- === THEMIS RESILIENCE GROUP: DYNAMIC PILLAR GRAPHIC === -->
+<style>
+  .themis-dynamic-graphic {
+    --bg-card: rgba(255, 255, 255, 0.03);
+    --bg-card-active: rgba(212, 175, 55, 0.11);
+    --gold: #D4AF37;
+    --gold-bright: #E5C158;
+    --gold-soft: rgba(212, 175, 55, 0.32);
+    --text-main: #F8FAFC;
+    --text-muted: #CBD5E1;
+    max-width: 720px;
+    font-family: inherit;
+    color: var(--text-main);
+  }
+
+  .graphic-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .pillar-switch {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .pillar-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--gold-soft);
+    color: var(--text-muted);
+    padding: 8px 14px;
+    font-size: 0.78rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    font-weight: 600;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.22s ease;
+  }
+
+  .pillar-btn:hover {
+    border-color: var(--gold);
+    color: var(--text-main);
+  }
+
+  .pillar-btn.active {
+    background: var(--bg-card-active);
+    border-color: var(--gold);
+    color: var(--gold-bright);
+    box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.25);
+  }
+
+  .cycle-toggle {
+    background: transparent;
+    border: 1px solid rgba(212, 175, 55, 0.28);
+    color: var(--gold-bright);
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    border-radius: 999px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: all 0.2s ease;
+  }
+
+  .cycle-toggle:hover {
+    border-color: var(--gold);
+    background: rgba(212, 175, 55, 0.08);
+  }
+
+  .pulse-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--gold-bright);
+    box-shadow: 0 0 8px var(--gold);
+    animation: pulseGlow 1.6s infinite ease-in-out;
+  }
+
+  .cycle-toggle.paused .pulse-dot {
+    animation: none;
+    background: #64748B;
+    box-shadow: none;
+  }
+
+  @keyframes pulseGlow {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.35); opacity: 0.55; }
+  }
+
+  .node-matrix {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .node-card {
+    position: relative;
+    text-align: left;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.045) 0%, rgba(255, 255, 255, 0.01) 100%);
+    border: 1px solid var(--gold-soft);
+    border-top: 2px solid rgba(212, 175, 55, 0.65);
+    border-radius: 4px;
+    padding: 18px 20px;
+    cursor: pointer;
+    transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+    overflow: visible;
+  }
+
+  .node-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--gold);
+  }
+
+  .node-card.active {
+    background: linear-gradient(145deg, rgba(212, 175, 55, 0.14) 0%, rgba(212, 175, 55, 0.03) 100%);
+    border-color: var(--gold-bright);
+    border-top-width: 3px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.42), inset 0 0 24px rgba(212, 175, 55, 0.06);
+    transform: translateY(-2px);
+  }
+
+  .node-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .node-num {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--gold);
+  }
+
+  .node-tag {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #94A3B8;
+  }
+
+  .node-card.active .node-tag {
+    color: var(--gold-bright);
+  }
+
+  .node-title {
+    font-size: 1.02rem;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 5px;
+  }
+
+  .node-summary {
+    font-size: 0.88rem;
+    line-height: 1.42;
+    color: var(--text-muted);
+  }
+
+  /* Animated connector arrows */
+  .flow-arrow {
+    position: absolute;
+    color: var(--gold);
+    font-size: 1.05rem;
+    pointer-events: none;
+    animation: flowDrift 2.2s infinite ease-in-out;
+  }
+
+  .flow-right { right: -19px; top: 50%; transform: translateY(-50%); }
+  .flow-down  { bottom: -22px; left: 50%; transform: translateX(-50%); }
+  .flow-left  { left: -19px; top: 50%; transform: translateY(-50%); }
+  .flow-up    { top: -22px; left: 50%; transform: translateX(-50%); }
+
+  @keyframes flowDrift {
+    0%, 100% { opacity: 0.45; }
+    50% { opacity: 1; }
+  }
+
+  /* Dynamic Inspector Drawer */
+  .inspector-panel {
+    margin-top: 22px;
+    background: rgba(8, 18, 36, 0.72);
+    border: 1px solid rgba(212, 175, 55, 0.45);
+    border-left: 3px solid var(--gold-bright);
+    border-radius: 4px;
+    padding: 18px 22px;
+    transition: all 0.25s ease;
+  }
+
+  .inspector-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+
+  .inspector-kicker {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold-bright);
+    font-weight: 700;
+  }
+
+  .inspector-metric {
+    font-size: 0.78rem;
+    color: #E2E8F0;
+    background: rgba(212, 175, 55, 0.14);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    padding: 3px 10px;
+    border-radius: 3px;
+  }
+
+  .inspector-heading {
+    font-size: 1.08rem;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 6px;
+  }
+
+  .inspector-copy {
+    font-size: 0.9rem;
+    line-height: 1.52;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .inspector-action {
+    font-size: 0.85rem;
+    color: var(--gold-bright);
+    padding-top: 8px;
+    border-top: 1px solid rgba(212, 175, 55, 0.16);
+  }
+
+  @media (max-width: 680px) {
+    .node-matrix { grid-template-columns: 1fr; }
+    .flow-arrow { display: none; }
+  }
+</style>
+
+<div class="themis-dynamic-graphic" id="themisGraphic">
+  <div class="graphic-topbar">
+    <div class="pillar-switch" role="tablist" aria-label="Research Pillars">
+      <button class="pillar-btn active" data-pillar="climate" role="tab" aria-selected="true">
+        Climate–Conflict–Arms Loop
+      </button>
+      <button class="pillar-btn" data-pillar="aiLaws" role="tab" aria-selected="false">
+        AI &amp; Autonomous Weapons
+      </button>
+    </div>
+
+    <button class="cycle-toggle" id="cycleToggleBtn" type="button" aria-pressed="true">
+      <span class="pulse-dot"></span>
+      <span id="cycleLabel">Auto-Cycle: ON</span>
+    </button>
+  </div>
+
+  <!-- Rendered dynamically by JS in clockwise visual order: [01] [02] / [04] [03] -->
+  <div class="node-matrix" id="nodeMatrix"></div>
+
+  <div class="inspector-panel" id="inspectorPanel" aria-live="polite">
+    <div class="inspector-meta">
+      <span class="inspector-kicker" id="inspKicker"></span>
+      <span class="inspector-metric" id="inspMetric"></span>
+    </div>
+    <div class="inspector-heading" id="inspHeading"></div>
+    <div class="inspector-copy" id="inspCopy"></div>
+    <div class="inspector-action" id="inspAction"></div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const PILLARS = {
+      climate: {
+        label: "Climate–Conflict–Arms Feedback Loop",
+        isLoop: true,
+        gridOrder: [0, 1, 3, 2],
+        nodes: [
+          {
+            num: "01",
+            tag: "Trigger",
+            title: "Ecological shock",
+            summary: "Drought collapses herds and harvests",
+            arrow: "flow-right",
+            arrowSymbol: "→",
+            metric: "13M+ livestock lost in 2020–23 Horn drought",
+            detail: "Multi-season droughts and shrinking grazing corridors rapidly erode household assets across pastoralist and agro-pastoral borderlands, breaking traditional seasonal coping mechanisms.",
+            action: "Policy shift: Pair early-warning drought finance with cross-border transhumance and shared water agreements before shocks turn into displacement."
+          },
+          {
+            num: "02",
+            tag: "Vulnerability",
+            title: "Recruitment",
+            summary: "Stranded youth targeted by armed groups",
+            arrow: "flow-down",
+            arrowSymbol: "↓",
+            metric: "Liptako-Gourma, Lake Chad & Horn borderlands",
+            detail: "When livelihood collapse coincides with thin state presence, armed groups and illicit networks recruit economically stranded young people by offering income, protection, and weapons.",
+            action: "Policy shift: Expand youth livelihood security, local mediation committees, and funded Women, Peace and Security pathways in high-risk corridors."
+          },
+          {
+            num: "03",
+            tag: "Escalation",
+            title: "Arms as escalator",
+            summary: "Illicit small arms turn disputes lethal",
+            arrow: "flow-left",
+            arrowSymbol: "←",
+            metric: "~40M illicit small arms across Africa",
+            detail: "Proliferation of illicit small arms and light weapons transforms localized grazing, water, or cattle disputes from manageable friction into high-casualty, protracted violence.",
+            action: "Policy shift: Strengthen physical stockpile security, weapon marking/tracing, and regional SALW enforcement alongside community peace agreements."
+          },
+          {
+            num: "04",
+            tag: "Lock-In",
+            title: "Blocked adaptation",
+            summary: "Violence closes pastures and stalls projects",
+            arrow: "flow-up",
+            arrowSymbol: "↑",
+            metric: "<$2/person/yr adaptation finance in fragile states",
+            detail: "Armed insecurity prevents herders from accessing dry-season pastures, halts climate infrastructure, and deters adaptation funding—feeding the next ecological and security shock.",
+            action: "Policy shift: Open risk-tolerant climate finance windows for fragile borderlands and treat climate adaptation as core conflict prevention."
+          }
+        ]
+      },
+      aiLaws: {
+        label: "AI Governance & Lethal Autonomous Weapons",
+        isLoop: false,
+        gridOrder: [0, 1, 2, 3],
+        nodes: [
+          {
+            num: "01",
+            tag: "Guardrail",
+            title: "Meaningful human control",
+            summary: "Prohibiting autonomous systems that target people without human judgment",
+            arrow: "",
+            arrowSymbol: "",
+            metric: "Article 36 legal reviews before deployment",
+            detail: "Delegating life-and-death targeting decisions to autonomous algorithms erodes command accountability, international humanitarian law compliance, and human moral agency.",
+            action: "Policy shift: Establish clear prohibitions on unpredictable or human-out-of-the-loop systems and mandate legal reviews prior to fielding or software updates."
+          },
+          {
+            num: "02",
+            tag: "Multilateralism",
+            title: "Post-consensus rule-making",
+            summary: "Moving beyond CCW deadlocks toward binding guardrails",
+            arrow: "",
+            arrowSymbol: "",
+            metric: "163 UNGA states backing urgent treaty action",
+            detail: "Consensus vetoes in multilateral forums risk stretching negotiations over years while autonomous and military AI capabilities advance rapidly on real-world battlefields.",
+            action: "Policy shift: Pair structured technical workstreams with inclusive UN General Assembly and regional tracks capable of producing binding legal obligations."
+          },
+          {
+            num: "03",
+            tag: "Verification",
+            title: "Frontier AI oversight",
+            summary: "Auditing opaque models before high-stakes deployment",
+            arrow: "",
+            arrowSymbol: "",
+            metric: "Closing the gap between lab pace & public law",
+            detail: "As frontier systems grow more complex and harder to audit end-to-end, unverified deployment in security, defense, and critical infrastructure creates systemic governance risks.",
+            action: "Policy shift: Require pre-deployment safety evaluations, incident reporting, and technical transparency proportional to system capability and risk."
+          },
+          {
+            num: "04",
+            tag: "Representation",
+            title: "Global South agency",
+            summary: "Seating African and youth practitioners at drafting tables",
+            arrow: "",
+            arrowSymbol: "",
+            metric: "Bridging Geneva negotiations & African realities",
+            detail: "Global AI and weapons norms are heavily shaped by a narrow set of capitals and labs, leaving Africa and Global South youth underrepresented in technical rule-making.",
+            action: "Policy shift: Expand diplomatic capacity, technical fellowships, and frontline practitioner input across Africa and the Global South."
+          }
+        ]
+      }
+    };
+
+    let currentPillarKey = "climate";
+    let activeNodeIndex = 0;
+    let autoCycle = true;
+    let timerId = null;
+
+    const matrixEl = document.getElementById("nodeMatrix");
+    const cycleBtn = document.getElementById("cycleToggleBtn");
+    const cycleLabel = document.getElementById("cycleLabel");
+    const inspKicker = document.getElementById("inspKicker");
+    const inspMetric = document.getElementById("inspMetric");
+    const inspHeading = document.getElementById("inspHeading");
+    const inspCopy = document.getElementById("inspCopy");
+    const inspAction = document.getElementById("inspAction");
+
+    function renderInspector() {
+      const pillar = PILLARS[currentPillarKey];
+      const node = pillar.nodes[activeNodeIndex];
+      inspKicker.textContent = `${pillar.label} · Node ${node.num} (${node.tag})`;
+      inspMetric.textContent = node.metric;
+      inspHeading.textContent = node.title;
+      inspCopy.textContent = node.detail;
+      inspAction.textContent = node.action;
+    }
+
+    function renderMatrix() {
+      const pillar = PILLARS[currentPillarKey];
+      matrixEl.innerHTML = "";
+
+      pillar.gridOrder.forEach((nodeIdx) => {
+        const node = pillar.nodes[nodeIdx];
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = `node-card ${nodeIdx === activeNodeIndex ? "active" : ""}`;
+        card.setAttribute("aria-pressed", nodeIdx === activeNodeIndex ? "true" : "false");
+
+        card.innerHTML = `
+          <div class="node-header">
+            <span class="node-num">${node.num}</span>
+            <span class="node-tag">${node.tag}</span>
+          </div>
+          <div class="node-title">${node.title}</div>
+          <div class="node-summary">${node.summary}</div>
+          ${pillar.isLoop && node.arrow ? `<span class="flow-arrow ${node.arrow}" aria-hidden="true">${node.arrowSymbol}</span>` : ""}
+        `;
+
+        card.addEventListener("click", () => {
+          activeNodeIndex = nodeIdx;
+          stopAutoCycle();
+          renderMatrix();
+          renderInspector();
+        });
+
+        matrixEl.appendChild(card);
+      });
+
+      renderInspector();
+    }
+
+    function stepNextNode() {
+      const total = PILLARS[currentPillarKey].nodes.length;
+      activeNodeIndex = (activeNodeIndex + 1) % total;
+      renderMatrix();
+    }
+
+    function startAutoCycle() {
+      stopAutoCycle();
+      if (!autoCycle) return;
+      timerId = setInterval(stepNextNode, 4200);
+    }
+
+    function stopAutoCycle() {
+      if (timerId) {
+        clearInterval(timerId);
+        timerId = null;
+      }
+    }
+
+    function syncCycleButton() {
+      cycleBtn.classList.toggle("paused", !autoCycle);
+      cycleBtn.setAttribute("aria-pressed", autoCycle ? "true" : "false");
+      cycleLabel.textContent = autoCycle ? "Auto-Cycle: ON" : "Auto-Cycle: PAUSED";
+    }
+
+    cycleBtn.addEventListener("click", () => {
+      autoCycle = !autoCycle;
+      syncCycleButton();
+      if (autoCycle) {
+        startAutoCycle();
+      } else {
+        stopAutoCycle();
+      }
+    });
+
+    document.querySelectorAll(".pillar-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const selectedKey = e.currentTarget.dataset.pillar;
+        document.querySelectorAll(".pillar-btn").forEach((b) => {
+          const isCurrent = b === e.currentTarget;
+          b.classList.toggle("active", isCurrent);
+          b.setAttribute("aria-selected", isCurrent ? "true" : "false");
+        });
+        currentPillarKey = selectedKey;
+        activeNodeIndex = 0;
+        renderMatrix();
+        if (autoCycle) startAutoCycle();
+      });
+    });
+
+    const rootGraphic = document.getElementById("themisGraphic");
+    rootGraphic.addEventListener("mouseenter", stopAutoCycle);
+    rootGraphic.addEventListener("mouseleave", () => {
+      if (autoCycle) startAutoCycle();
+    });
+
+    renderMatrix();
+    syncCycleButton();
+    startAutoCycle();
+  })();
+</script>
